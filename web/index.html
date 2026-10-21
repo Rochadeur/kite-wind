@@ -78,7 +78,7 @@ function render(d) {
   const daylight = t => { const [rise, set] = sunTimes(t, d.spot.lat, d.spot.lon); return t > rise - 3600e3 && t < set + 3600e3; };
   const rows = d.rows.filter(r => local(r.t) >= now && (allHours || daylight(local(r.t))));
   document.getElementById("meta").textContent =
-    `${MODELS[d.model]} · Lauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
+    `${d.spot.region} · ${d.spot.name} · ${MODELS[d.model]} · Lauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
   // Tageskopf
   const days = [];
   for (const r of rows) {
@@ -102,8 +102,11 @@ function render(d) {
 async function init() {
   spots = await (await fetch("data/spots.json")).json();
   const sel = document.getElementById("spot");
-  sel.innerHTML = spots.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
-  sel.onchange = () => { spot = spots.find(s => s.id === sel.value); load(); };
+  // Spots nach Region gruppiert, Reihenfolge wie in spots.json
+  const regions = [...new Set(spots.map(s => s.region))];
+  sel.innerHTML = regions.map(g => `<optgroup label="${g}">${spots.filter(s => s.region === g)
+    .map(s => `<option value="${s.id}">${s.name}</option>`).join("")}</optgroup>`).join("");
+  sel.onchange = () => { spot = spots.find(s => s.id === sel.value); try { localStorage.setItem("spot", spot.id); } catch {} load(); };
   const m = document.getElementById("models");
   m.innerHTML = Object.entries(MODELS).map(([k, v]) => `<button data-m="${k}">${v}</button>`).join(" ");
   m.onclick = e => { if (!e.target.dataset.m) return; model = e.target.dataset.m; mark(); load(); };
@@ -111,7 +114,8 @@ async function init() {
   const ah = document.getElementById("allHours");
   ah.checked = allHours;
   ah.onchange = () => { allHours = ah.checked; try { localStorage.setItem("allHours", allHours ? "1" : "0"); } catch {} load(); };
-  spot = spots[0]; mark(); load();
+  let saved; try { saved = localStorage.getItem("spot"); } catch {}
+  spot = spots.find(s => s.id === saved) || spots[0]; sel.value = spot.id; mark(); load();
 }
 init();
 </script>
