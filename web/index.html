@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kite-Wind</title>
 <style>
-  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#6b7280; --line:#e3e6ea; --card:#fff; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --card:#181c21; } }
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#6b7280; --line:#e3e6ea; --card:#fff; --sep:#b8bec7; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --card:#181c21; --sep:#4a525c; } }
   body { margin:0; font:14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
   header { padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
   h1 { font-size:18px; margin:0 12px 0 0; }
@@ -19,6 +19,8 @@
   th:first-child, td:first-child { position:sticky; left:0; background:var(--card); text-align:left; padding:4px 10px; min-width:96px; color:var(--muted); font-weight:500; border-left:0; z-index:1; }
   tr.day th { font-weight:600; border-bottom:1px solid var(--line); }
   td.w { font-weight:600; color:#111; }
+  /* Trennlinie vor jedem neuen Tag */
+  th.ds, td.ds { border-left:2px solid var(--sep); }
   /* Windfinder-Stil: gefüllter Pfeil, zeigt wohin der Wind weht */
   .dir { display:flex; flex-direction:column; align-items:center; gap:1px; }
   .dir svg { width:20px; height:20px; fill:var(--fg); }
@@ -62,12 +64,13 @@ function render(d) {
   const days = [];
   for (const r of rows) {
     const t = local(r.t), key = t.toDateString();
-    if (!days.length || days.at(-1).key !== key) days.push({ key, label: `${DAYS[t.getDay()]} ${t.getDate()}.${t.getMonth()+1}.`, n: 0 });
+    if (!days.length || days.at(-1).key !== key) days.push({ key, label: `${DAYS[t.getDay()]} ${t.getDate()}.${t.getMonth()+1}.`, n: 0, first: rows.indexOf(r) });
     days.at(-1).n++;
   }
-  const line = (label, f, cls = "") => `<tr><td>${label}</td>${rows.map(r => `<td class="${cls}" ${f.style ? `style="${f.style(r)}"` : ""}>${f.v(r)}</td>`).join("")}</tr>`;
+  const starts = new Set(days.slice(1).map(d => d.first));
+  const line = (label, f, cls = "") => `<tr><td>${label}</td>${rows.map((r, i) => `<td class="${cls}${starts.has(i) ? " ds" : ""}" ${f.style ? `style="${f.style(r)}"` : ""}>${f.v(r)}</td>`).join("")}</tr>`;
   document.getElementById("tbl").innerHTML =
-    `<tr class="day"><th></th>${days.map(d => `<th colspan="${d.n}">${d.label}</th>`).join("")}</tr>` +
+    `<tr class="day"><th></th>${days.map((d, i) => `<th colspan="${d.n}"${i ? ' class="ds"' : ""}>${d.label}</th>`).join("")}</tr>` +
     line("Uhrzeit", { v: r => local(r.t).getHours() + "h" }) +
     line("Wind (kn)", { v: r => Math.round(r.wind), style: r => `background:${color(r.wind)}` }, "w") +
     line("Böen (kn)", { v: r => Math.round(r.gust), style: r => `background:${color(r.gust)}` }, "w") +
