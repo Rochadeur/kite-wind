@@ -1,0 +1,2 @@
+web/data/*.json
+__pycache__/

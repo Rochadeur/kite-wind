@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kite-Wind</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#6b7280; --line:#e3e6ea; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --card:#181c21; } }
+  body { margin:0; font:14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  header { padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  h1 { font-size:18px; margin:0 12px 0 0; }
+  select, button { font:inherit; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); }
+  button.on { background:var(--fg); color:var(--bg); }
+  .meta { color:var(--muted); padding:0 16px 8px; }
+  .wrap { overflow-x:auto; margin:0 16px 24px; background:var(--card); border:1px solid var(--line); border-radius:8px; }
+  table { border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:4px 0; min-width:34px; text-align:center; border-left:1px solid var(--line); }
+  th:first-child, td:first-child { position:sticky; left:0; background:var(--card); text-align:left; padding:4px 10px; min-width:96px; color:var(--muted); font-weight:500; border-left:0; z-index:1; }
+  tr.day th { font-weight:600; border-bottom:1px solid var(--line); }
+  td.w { font-weight:600; color:#111; }
+  .arrow { display:inline-block; font-size:16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kite-Wind</h1>
+  <select id="spot"></select>
+  <span id="models"></span>
+</header>
+<div class="meta" id="meta"></div>
+<div class="wrap"><table id="tbl"></table></div>
+<script>
+const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)" };
+let spots = [], spot, model = "icon-d2";
+
+// Windguru-ähnliche Skala in Knoten
+const SCALE = [[0,"#ffffff"],[5,"#c6ecff"],[10,"#7fd3ff"],[14,"#5ef09a"],[18,"#f5f55a"],[22,"#ffb340"],[27,"#ff5a3c"],[33,"#e0218a"],[40,"#9b30d9"]];
+const color = kn => SCALE.reduce((c, [k, col]) => kn >= k ? col : c, SCALE[0][1]);
+const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const local = iso => new Date(iso.replace("Z", ":00Z"));
+
+async function load() {
+  const r = await fetch(`data/${spot.id}.${model}.json`);
+  if (!r.ok) { document.getElementById("meta").textContent = "Keine Daten für diesen Spot/Modell."; return; }
+  render(await r.json());
+}
+
+function render(d) {
+  const now = Date.now() - 3600e3;
+  const rows = d.rows.filter(r => local(r.t) >= now);
+  document.getElementById("meta").textContent =
+    `${MODELS[d.model]} · Lauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
+  // Tageskopf
+  const days = [];
+  for (const r of rows) {
+    const t = local(r.t), key = t.toDateString();
+    if (!days.length || days.at(-1).key !== key) days.push({ key, label: `${DAYS[t.getDay()]} ${t.getDate()}.${t.getMonth()+1}.`, n: 0 });
+    days.at(-1).n++;
+  }
+  const line = (label, f, cls = "") => `<tr><td>${label}</td>${rows.map(r => `<td class="${cls}" ${f.style ? `style="${f.style(r)}"` : ""}>${f.v(r)}</td>`).join("")}</tr>`;
+  document.getElementById("tbl").innerHTML =
+    `<tr class="day"><th></th>${days.map(d => `<th colspan="${d.n}">${d.label}</th>`).join("")}</tr>` +
+    line("Uhrzeit", { v: r => local(r.t).getHours() + "h" }) +
+    line("Wind (kn)", { v: r => Math.round(r.wind), style: r => `background:${color(r.wind)}` }, "w") +
+    line("Böen (kn)", { v: r => Math.round(r.gust), style: r => `background:${color(r.gust)}` }, "w") +
+    line("Richtung", { v: r => `<span class="arrow" title="${r.dir}°" style="transform:rotate(${r.dir + 180}deg)">↑</span>` }) +
+    line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
+    line("Wolken (%)", { v: r => r.cloud }) +
+    line("Regen (mm)", { v: r => r.rain >= 0.1 ? r.rain : "" });
+}
+
+async function init() {
+  spots = await (await fetch("data/spots.json")).json();
+  const sel = document.getElementById("spot");
+  sel.innerHTML = spots.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+  sel.onchange = () => { spot = spots.find(s => s.id === sel.value); load(); };
+  const m = document.getElementById("models");
+  m.innerHTML = Object.entries(MODELS).map(([k, v]) => `<button data-m="${k}">${v}</button>`).join(" ");
+  m.onclick = e => { if (!e.target.dataset.m) return; model = e.target.dataset.m; mark(); load(); };
+  const mark = () => m.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === model));
+  spot = spots[0]; mark(); load();
+}
+init();
+</script>
+</body>
+</html>
