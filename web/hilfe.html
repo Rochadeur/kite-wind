@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kite-Wind Hilfe</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#6b7280; --line:#e3e6ea; --card:#fff; --link:#1565c0; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --card:#181c21; --link:#7fb6ff; } }
+  body { margin:0; font:15px/1.55 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:720px; margin:0 auto; padding:16px 16px 48px; }
+  header { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; }
+  h1 { font-size:22px; margin:8px 0; }
+  h2 { font-size:17px; margin:28px 0 6px; }
+  p, li { margin:6px 0; }
+  a { color:var(--link); }
+  .muted { color:var(--muted); }
+  table { border-collapse:collapse; margin:8px 0; background:var(--card); border:1px solid var(--line); border-radius:6px; }
+  th, td { text-align:left; padding:5px 10px; border-top:1px solid var(--line); vertical-align:top; }
+  tr:first-child th, tr:first-child td { border-top:0; }
+  .scale { display:flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:8px 0; }
+  .scale span { flex:1 0 64px; padding:6px 4px; text-align:center; font-weight:600; color:#111; font-variant-numeric:tabular-nums; }
+  .dir svg { width:20px; height:20px; fill:var(--fg); vertical-align:middle; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Kite-Wind: Hilfe</h1>
+  <a href="./">← Zur Vorhersage</a>
+</header>
+<p>Kite-Wind zeigt eine Windvorhersage für Kitespots an der deutschen Ostsee. Die Daten kommen direkt aus den Wettermodellen des Deutschen Wetterdienstes (DWD).</p>
+
+<h2>Spot auswählen</h2>
+<p>Oben links wählst du den Spot. Die Spots sind nach Regionen sortiert, zum Beispiel Fehmarn, Kieler Förde oder Rügen. Die Seite merkt sich deinen zuletzt gewählten Spot in diesem Browser.</p>
+<p>Unter der Auswahl steht, welcher Modell-Gitterpunkt verwendet wird. Das ist der Punkt im Wettermodell, der dem Spot am nächsten liegt.</p>
+
+<h2>Wettermodell wählen</h2>
+<table>
+  <tr><th>ICON-D2 (2 km)</th><td>Feines Modell für Deutschland. Erfasst lokale Effekte wie Küsten und Bodden besser. Reicht etwa 2 Tage in die Zukunft, Werte für jede Stunde.</td></tr>
+  <tr><th>ICON-EU (7 km)</th><td>Gröberes Modell für Europa. Reicht etwa 5 Tage in die Zukunft. Bis etwa Tag 3 stündlich, danach alle 3 Stunden.</td></tr>
+</table>
+<p>Faustregel: Für heute und morgen ist ICON-D2 meist genauer, für die Tage danach nimmst du ICON-EU.</p>
+
+<h2>Die Tabelle</h2>
+<p>Jede Spalte ist eine Stunde. Die Tage sind durch eine graue Linie getrennt. Auf dem Handy kannst du die Tabelle seitlich wischen.</p>
+<table>
+  <tr><th>Uhrzeit</th><td>Ortszeit deines Geräts.</td></tr>
+  <tr><th>Wind (kn)</th><td>Mittlerer Wind in 10 m Höhe, in Knoten.</td></tr>
+  <tr><th>Böen (kn)</th><td>Stärkste Böe in der Stunde davor, in Knoten.</td></tr>
+  <tr><th>Richtung</th><td>Windrichtung als Pfeil und Himmelsrichtung (siehe unten).</td></tr>
+  <tr><th>Temp. (°C)</th><td>Lufttemperatur in 2 m Höhe.</td></tr>
+  <tr><th>Wolken (%)</th><td>Bewölkung: 0 = klar, 100 = komplett bedeckt.</td></tr>
+  <tr><th>Regen (mm)</th><td>Niederschlag in der Stunde (bei 3-Stunden-Schritten im Zeitraum davor). Leer heißt trocken.</td></tr>
+</table>
+<p class="muted">1 Knoten = 1,85 km/h ≈ 0,5 m/s. 4 Bft entsprechen etwa 11–16 kn, 5 Bft etwa 17–21 kn.</p>
+
+<h2>Farben für Wind und Böen</h2>
+<p>Je kräftiger die Farbe, desto mehr Wind. Die Zahl gibt an, ab wie vielen Knoten die Farbe gilt.</p>
+<div class="scale">
+  <span style="background:#ffffff">0</span><span style="background:#c6ecff">5</span><span style="background:#7fd3ff">10</span>
+  <span style="background:#5ef09a">14</span><span style="background:#f5f55a">18</span><span style="background:#ffb340">22</span>
+  <span style="background:#ff5a3c">27</span><span style="background:#e0218a">33</span><span style="background:#9b30d9">40</span>
+</div>
+
+<h2>Windrichtung</h2>
+<p><span class="dir"><svg viewBox="0 0 24 24" style="transform:rotate(45deg)"><path d="M12 2 L17 21 L12 17 L7 21 Z"/></svg></span>
+Der Pfeil zeigt, <strong>wohin</strong> der Wind weht, so wie bei Windfinder. Darunter steht, <strong>woher</strong> er kommt. Der Pfeil oben zeigt nach Nordosten, der Wind kommt also aus Südwest (SW).</p>
+<p>Wenn du mit der Maus auf einen Pfeil zeigst, siehst du die genaue Richtung in Grad.</p>
+
+<h2>Tageslicht oder alle Stunden</h2>
+<p>Normalerweise zeigt die Tabelle nur die Stunden mit Tageslicht. Jeder Tag beginnt mit der Stunde des Sonnenaufgangs und endet mit der ersten Stunde nach Sonnenuntergang. Die Seite berechnet die Zeiten für jeden Spot und jeden Tag.</p>
+<p>Mit dem Häkchen <strong>Alle Stunden</strong> siehst du auch die Nacht. Die Seite merkt sich deine Wahl.</p>
+
+<h2>Wie aktuell sind die Daten?</h2>
+<p>Die Seite holt alle 3 Stunden automatisch die neuesten Modelldaten vom <a href="https://opendata.dwd.de/" rel="noopener">DWD Open Data Server</a>. Oben über der Tabelle steht, von welchem Modelllauf die Vorhersage stammt (Zeit in Ortszeit). Bereits vergangene Stunden werden ausgeblendet.</p>
+
+<h2>Gut zu wissen</h2>
+<ul>
+  <li>Das ist eine reine Modellvorhersage ohne Messwerte und ohne Korrektur. Vor Ort kann es anders aussehen, vor allem bei Gewitter, Seebrise oder ablandigem Wind.</li>
+  <li>Prüfe vor dem Kiten immer die aktuelle Lage und die Regeln am Spot.</li>
+</ul>
+<p class="muted">Datenquelle: Deutscher Wetterdienst, Modelle ICON-D2 und ICON-EU.</p>
+</main>
+</body>
+</html>

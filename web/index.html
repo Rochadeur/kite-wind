@@ -13,6 +13,7 @@
   select, button { font:inherit; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); }
   button.on { background:var(--fg); color:var(--bg); }
   .opt { display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .help { margin-left:auto; color:var(--fg); }
   .meta { color:var(--muted); padding:0 16px 8px; }
   .wrap { overflow-x:auto; margin:0 16px 24px; background:var(--card); border:1px solid var(--line); border-radius:8px; }
   table { border-collapse:collapse; font-variant-numeric:tabular-nums; }
@@ -34,6 +35,7 @@
   <select id="spot"></select>
   <span id="models"></span>
   <label class="opt"><input type="checkbox" id="allHours"> Alle Stunden</label>
+  <a class="help" href="hilfe.html">Hilfe</a>
 </header>
 <div class="meta" id="meta"></div>
 <div class="wrap"><table id="tbl"></table></div>
