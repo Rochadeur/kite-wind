@@ -12,6 +12,7 @@
   h1 { font-size:18px; margin:0 12px 0 0; }
   select, button { font:inherit; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); }
   button.on { background:var(--fg); color:var(--bg); }
+  .opt { display:flex; align-items:center; gap:6px; cursor:pointer; }
   .meta { color:var(--muted); padding:0 16px 8px; }
   .wrap { overflow-x:auto; margin:0 16px 24px; background:var(--card); border:1px solid var(--line); border-radius:8px; }
   table { border-collapse:collapse; font-variant-numeric:tabular-nums; }
@@ -32,6 +33,7 @@
   <h1>Kite-Wind</h1>
   <select id="spot"></select>
   <span id="models"></span>
+  <label class="opt"><input type="checkbox" id="allHours"> Alle Stunden</label>
 </header>
 <div class="meta" id="meta"></div>
 <div class="wrap"><table id="tbl"></table></div>
@@ -47,6 +49,21 @@ const COMPASS = ["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW",
 const compass = deg => COMPASS[Math.round(deg / 22.5) % 16];
 // Pfeilspitze mit Kerbe, um 180° gedreht: Windrichtung "kommt aus" -> Pfeil zeigt "weht nach"
 const arrow = deg => `<span class="dir" title="${Math.round(deg)}° (${compass(deg)})"><svg viewBox="0 0 24 24" style="transform:rotate(${deg + 180}deg)"><path d="M12 2 L20 21 L12 16.5 L4 21 Z"/></svg><small>${compass(deg)}</small></span>`;
+// Sonnenauf-/untergang (NOAA-Näherung, ±1-2 min) für Datum t und Ort -> [Aufgang, Untergang] in ms
+function sunTimes(t, lat, lon) {
+  const rad = Math.PI / 180, jd = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate(), 12) / 864e5 + 2440587.5;
+  const j = Math.floor(jd - 2451545 + 0.0008) - lon / 360;
+  const M = (357.5291 + 0.98560028 * j) % 360;
+  const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  const L = (M + C + 282.9372) % 360;
+  const transit = 2451545 + j + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+  const dec = Math.asin(Math.sin(L * rad) * Math.sin(23.44 * rad));
+  const w = Math.acos((Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec))) / rad;
+  const ms = jdn => (jdn - 2440587.5) * 864e5;
+  return [ms(transit - w / 360), ms(transit + w / 360)];
+}
+let allHours = false;
+try { allHours = localStorage.getItem("allHours") === "1"; } catch {}
 const local = iso => new Date(iso.replace("Z", ":00Z"));
 
 async function load() {
@@ -57,7 +74,9 @@ async function load() {
 
 function render(d) {
   const now = Date.now() - 3600e3;
-  const rows = d.rows.filter(r => local(r.t) >= now);
+  // Standard: von der Stunde des Sonnenaufgangs bis zur ersten Stunde nach Sonnenuntergang
+  const daylight = t => { const [rise, set] = sunTimes(t, d.spot.lat, d.spot.lon); return t > rise - 3600e3 && t < set + 3600e3; };
+  const rows = d.rows.filter(r => local(r.t) >= now && (allHours || daylight(local(r.t))));
   document.getElementById("meta").textContent =
     `${MODELS[d.model]} · Lauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
   // Tageskopf
@@ -89,6 +108,9 @@ async function init() {
   m.innerHTML = Object.entries(MODELS).map(([k, v]) => `<button data-m="${k}">${v}</button>`).join(" ");
   m.onclick = e => { if (!e.target.dataset.m) return; model = e.target.dataset.m; mark(); load(); };
   const mark = () => m.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === model));
+  const ah = document.getElementById("allHours");
+  ah.checked = allHours;
+  ah.onchange = () => { allHours = ah.checked; try { localStorage.setItem("allHours", allHours ? "1" : "0"); } catch {} load(); };
   spot = spots[0]; mark(); load();
 }
 init();
