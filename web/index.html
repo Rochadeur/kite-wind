@@ -48,7 +48,7 @@ const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const COMPASS = ["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"];
 const compass = deg => COMPASS[Math.round(deg / 22.5) % 16];
 // Pfeilspitze mit Kerbe, um 180° gedreht: Windrichtung "kommt aus" -> Pfeil zeigt "weht nach"
-const arrow = deg => `<span class="dir" title="${Math.round(deg)}° (${compass(deg)})"><svg viewBox="0 0 24 24" style="transform:rotate(${deg + 180}deg)"><path d="M12 2 L20 21 L12 16.5 L4 21 Z"/></svg><small>${compass(deg)}</small></span>`;
+const arrow = deg => `<span class="dir" title="${Math.round(deg)}° (${compass(deg)})"><svg viewBox="0 0 24 24" style="transform:rotate(${deg + 180}deg)"><path d="M12 2 L17 21 L12 17 L7 21 Z"/></svg><small>${compass(deg)}</small></span>`;
 // Sonnenauf-/untergang (NOAA-Näherung, ±1-2 min) für Datum t und Ort -> [Aufgang, Untergang] in ms
 function sunTimes(t, lat, lon) {
   const rad = Math.PI / 180, jd = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate(), 12) / 864e5 + 2440587.5;
