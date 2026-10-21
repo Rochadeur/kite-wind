@@ -19,7 +19,10 @@
   th:first-child, td:first-child { position:sticky; left:0; background:var(--card); text-align:left; padding:4px 10px; min-width:96px; color:var(--muted); font-weight:500; border-left:0; z-index:1; }
   tr.day th { font-weight:600; border-bottom:1px solid var(--line); }
   td.w { font-weight:600; color:#111; }
-  .arrow { display:inline-block; font-size:16px; }
+  /* Windfinder-Stil: gefüllter Pfeil, zeigt wohin der Wind weht */
+  .dir { display:flex; flex-direction:column; align-items:center; gap:1px; }
+  .dir svg { width:20px; height:20px; fill:var(--fg); }
+  .dir small { font-size:10px; color:var(--muted); line-height:1; }
 </style>
 </head>
 <body>
@@ -38,6 +41,10 @@ let spots = [], spot, model = "icon-d2";
 const SCALE = [[0,"#ffffff"],[5,"#c6ecff"],[10,"#7fd3ff"],[14,"#5ef09a"],[18,"#f5f55a"],[22,"#ffb340"],[27,"#ff5a3c"],[33,"#e0218a"],[40,"#9b30d9"]];
 const color = kn => SCALE.reduce((c, [k, col]) => kn >= k ? col : c, SCALE[0][1]);
 const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const COMPASS = ["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const compass = deg => COMPASS[Math.round(deg / 22.5) % 16];
+// Pfeilspitze mit Kerbe, um 180° gedreht: Windrichtung "kommt aus" -> Pfeil zeigt "weht nach"
+const arrow = deg => `<span class="dir" title="${Math.round(deg)}° (${compass(deg)})"><svg viewBox="0 0 24 24" style="transform:rotate(${deg + 180}deg)"><path d="M12 2 L20 21 L12 16.5 L4 21 Z"/></svg><small>${compass(deg)}</small></span>`;
 const local = iso => new Date(iso.replace("Z", ":00Z"));
 
 async function load() {
@@ -64,7 +71,7 @@ function render(d) {
     line("Uhrzeit", { v: r => local(r.t).getHours() + "h" }) +
     line("Wind (kn)", { v: r => Math.round(r.wind), style: r => `background:${color(r.wind)}` }, "w") +
     line("Böen (kn)", { v: r => Math.round(r.gust), style: r => `background:${color(r.gust)}` }, "w") +
-    line("Richtung", { v: r => `<span class="arrow" title="${r.dir}°" style="transform:rotate(${r.dir + 180}deg)">↑</span>` }) +
+    line("Richtung", { v: r => arrow(r.dir) }) +
     line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
     line("Wolken (%)", { v: r => r.cloud }) +
     line("Regen (mm)", { v: r => r.rain >= 0.1 ? r.rain : "" });
