@@ -21,6 +21,7 @@
   .opt { display:flex; align-items:center; gap:6px; cursor:pointer; }
   .help { margin-left:auto; color:var(--fg); }
   .meta { color:var(--muted); padding:0 16px 8px; }
+  .meta a.map { color:var(--fg); white-space:nowrap; }
   .box { position:relative; margin:0 16px 24px; }
   .wrap { overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:8px; scroll-behavior:smooth; }
   /* Schatten am Rand und Pfeil-Knöpfe zeigen, dass die Tabelle seitlich weitergeht */
@@ -148,8 +149,9 @@ function render(d) {
   // Standard: von der Stunde des Sonnenaufgangs bis zur ersten Stunde nach Sonnenuntergang
   const daylight = t => { const [rise, set] = sunTimes(t, d.spot.lat, d.spot.lon); return t > rise - 3600e3 && t < set + 3600e3; };
   const rows = d.rows.filter(r => local(r.t) >= now && (allHours || daylight(local(r.t))));
-  document.getElementById("meta").textContent =
-    `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
+  const map = `https://www.google.com/maps/search/?api=1&query=${d.spot.lat},${d.spot.lon}`;
+  document.getElementById("meta").innerHTML =
+    `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · <a class="map" href="${map}" target="_blank" rel="noopener">Auf Karte anzeigen</a>`;
   // Tageskopf
   const days = [];
   for (const r of rows) {
