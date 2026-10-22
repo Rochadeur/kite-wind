@@ -19,7 +19,7 @@
   th, td { text-align:left; padding:5px 10px; border-top:1px solid var(--line); vertical-align:top; }
   tr:first-child th, tr:first-child td { border-top:0; }
   .scale { display:flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:8px 0; }
-  .scale span { flex:1 0 64px; padding:6px 4px; text-align:center; font-weight:600; color:#111; font-variant-numeric:tabular-nums; }
+  .scale span { flex:1 0 30px; padding:6px 4px; text-align:center; font-weight:600; color:#111; font-variant-numeric:tabular-nums; }
   .dir svg { width:20px; height:20px; fill:var(--fg); vertical-align:middle; }
 </style>
 </head>
@@ -55,12 +55,16 @@
 </table>
 <p class="muted">1 Knoten = 1,85 km/h ≈ 0,5 m/s. 4 Bft entsprechen etwa 11–16 kn, 5 Bft etwa 17–21 kn.</p>
 
-<h2>Farben für Wind und Böen</h2>
-<p>Je kräftiger die Farbe, desto mehr Wind. Die Zahl gibt an, ab wie vielen Knoten die Farbe gilt.</p>
+<h2>Balken und Farben für Wind und Böen</h2>
+<p>In der Zeile <strong>Wind</strong> hat jede Stunde einen Balken. Je höher der Balken, desto mehr Wind. Die Zahl im Balken ist der mittlere Wind in Knoten.</p>
+<p>Der kurze Strich über dem Balken ist die <strong>Böe</strong>. Je größer der Abstand zwischen Balken und Strich, desto böiger ist der Wind. Die genaue Böe steht in der Zeile darunter.</p>
+<p>Die Farben gehen von Blau (wenig Wind) über Türkis und Grün zu Gelb, Orange und Rot (viel Wind), ähnlich wie bei Windfinder. Die Zahl gibt an, wie viele Knoten zu der Farbe gehören. Dazwischen gehen die Farben fließend ineinander über.</p>
 <div class="scale">
-  <span style="background:#ffffff">0</span><span style="background:#c6ecff">5</span><span style="background:#7fd3ff">10</span>
-  <span style="background:#5ef09a">14</span><span style="background:#f5f55a">18</span><span style="background:#ffb340">22</span>
-  <span style="background:#ff5a3c">27</span><span style="background:#e0218a">33</span><span style="background:#9b30d9">40</span>
+  <span style="background:#1838e8;color:#fff">0</span><span style="background:#2a64f0;color:#fff">4</span><span style="background:#3c90f0;color:#fff">7</span>
+  <span style="background:#54c0f8">9</span><span style="background:#66dcea">11</span><span style="background:#58b490">13</span>
+  <span style="background:#60d040">15</span><span style="background:#6cf048">17</span><span style="background:#c4fc78">19</span>
+  <span style="background:#f8dc48">21</span><span style="background:#f0a030">24</span><span style="background:#e85030;color:#fff">27</span>
+  <span style="background:#d02060;color:#fff">31</span><span style="background:#a020a0;color:#fff">35</span>
 </div>
 
 <h2>Windrichtung</h2>

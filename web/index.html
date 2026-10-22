@@ -20,7 +20,12 @@
   th, td { padding:4px 0; min-width:34px; text-align:center; border-left:1px solid var(--line); }
   th:first-child, td:first-child { position:sticky; left:0; background:var(--card); text-align:left; padding:4px 10px; min-width:96px; color:var(--muted); font-weight:500; border-left:0; z-index:1; }
   tr.day th { font-weight:600; border-bottom:1px solid var(--line); }
-  td.w { font-weight:600; color:#111; }
+  /* Windzeile als Balken (Windfinder-Stil): Höhe/Farbe = Wind, Strich darüber = Böe */
+  td.bar { vertical-align:bottom; padding:0; height:84px; position:relative; }
+  td.bar .b { position:absolute; left:2px; right:2px; bottom:0; }
+  td.bar .g { position:absolute; left:4px; right:4px; height:3px; }
+  td.bar span { position:relative; font-weight:600; font-size:12px; display:block; padding-bottom:2px; color:#111; }
+  td.bar span.dk { color:#fff; }
   /* Trennlinie vor jedem neuen Tag */
   th.ds, td.ds { border-left:2px solid var(--sep); }
   /* Windfinder-Stil: gefüllter Pfeil, zeigt wohin der Wind weht */
@@ -43,9 +48,19 @@
 const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)" };
 let spots = [], spot, model = "icon-d2";
 
-// Windguru-ähnliche Skala in Knoten
-const SCALE = [[0,"#ffffff"],[5,"#c6ecff"],[10,"#7fd3ff"],[14,"#5ef09a"],[18,"#f5f55a"],[22,"#ffb340"],[27,"#ff5a3c"],[33,"#e0218a"],[40,"#9b30d9"]];
-const color = kn => SCALE.reduce((c, [k, col]) => kn >= k ? col : c, SCALE[0][1]);
+// Windfinder-ähnliche Skala in Knoten (Farben aus Screenshot, Knotenwerte geschätzt), dazwischen fließend
+const SCALE = [[0,"#1838e8"],[4,"#2a64f0"],[7,"#3c90f0"],[9,"#54c0f8"],[11,"#66dcea"],[13,"#58b490"],[15,"#60d040"],
+               [17,"#6cf048"],[19,"#c4fc78"],[21,"#f8dc48"],[24,"#f0a030"],[27,"#e85030"],[31,"#d02060"],[35,"#a020a0"]];
+const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16));
+const isDark = col => { const [r, g, b] = hex(col); return 0.299 * r + 0.587 * g + 0.114 * b < 140; };
+function color(kn) {
+  for (let i = 1; i < SCALE.length; i++) if (kn < SCALE[i][0]) {
+    const [k0, c0] = SCALE[i - 1], [k1, c1] = SCALE[i], f = (kn - k0) / (k1 - k0), a = hex(c0), b = hex(c1);
+    return "#" + a.map((v, j) => Math.round(v + (b[j] - v) * f).toString(16).padStart(2, "0")).join("");
+  }
+  return SCALE.at(-1)[1];
+}
+const PX_PER_KN = 2.2;
 const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const COMPASS = ["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"];
 const compass = deg => COMPASS[Math.round(deg / 22.5) % 16];
@@ -93,8 +108,12 @@ function render(d) {
   document.getElementById("tbl").innerHTML =
     `<tr class="day"><th></th>${days.map((d, i) => `<th colspan="${d.n}"${i ? ' class="ds"' : ""}>${d.label}</th>`).join("")}</tr>` +
     line("Uhrzeit", { v: r => local(r.t).getHours() + "h" }) +
-    line("Wind (kn)", { v: r => Math.round(r.wind), style: r => `background:${color(r.wind)}` }, "w") +
-    line("Böen (kn)", { v: r => Math.round(r.gust), style: r => `background:${color(r.gust)}` }, "w") +
+    `<tr><td>Wind (kn)</td>${rows.map((r, i) => {
+      const h = Math.max(Math.min(r.wind, 35) * PX_PER_KN, 16), g = Math.min(r.gust, 35) * PX_PER_KN, c = color(r.wind);
+      return `<td class="bar${starts.has(i) ? " ds" : ""}"><div class="b" style="height:${h}px;background:${c}"></div>` +
+        `<div class="g" style="bottom:${g}px;background:${color(r.gust)}"></div><span class="${isDark(c) ? "dk" : ""}">${Math.round(r.wind)}</span></td>`;
+    }).join("")}</tr>` +
+    line("Böen (kn)", { v: r => Math.round(r.gust) }) +
     line("Richtung", { v: r => arrow(r.dir) }) +
     line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
     line("Wolken (%)", { v: r => r.cloud }) +
