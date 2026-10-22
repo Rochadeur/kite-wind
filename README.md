@@ -1,7 +1,7 @@
 # Windlotse
 
 Windvorhersage für Kitespots aus den DWD-Modellen ICON-D2 (2,2 km, 48 h) und ICON-EU (7 km, 120 h),
-Daten von [opendata.dwd.de](https://opendata.dwd.de). Darstellung angelehnt an Windguru.
+Daten von [opendata.dwd.de](https://opendata.dwd.de)..
 
 ## So funktioniert es
 
