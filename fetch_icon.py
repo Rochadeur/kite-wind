@@ -125,7 +125,8 @@ def run_model(model, spots, out_dir):
             prev_prec = prec
         path = out_dir / f"{sid}.{model}.json"
         path.write_text(json.dumps({
-            "spot": s, "model": model, "run": run.strftime("%Y-%m-%dT%H:%MZ"), "rows": rows,
+            "spot": s, "model": model, "run": run.strftime("%Y-%m-%dT%H:%MZ"),
+            "fetched": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ"), "rows": rows,
         }, ensure_ascii=False))
         print(f"  -> {path}", file=sys.stderr)
 

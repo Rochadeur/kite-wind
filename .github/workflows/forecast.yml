@@ -2,8 +2,8 @@ name: Vorhersage aktualisieren
 
 on:
   schedule:
-    # alle 3 Stunden, kurz nachdem neue ICON-D2-Läufe vollständig sind
-    - cron: "20 */3 * * *"
+    # stündlich: neue DWD-Läufe kommen gestaffelt, und GitHub startet geplante Läufe oft mit Verspätung
+    - cron: "10 * * * *"
   workflow_dispatch:
   push:
     branches: [main]
