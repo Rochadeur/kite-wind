@@ -29,6 +29,9 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python fetch_icon.py --out web/data
+      # DMI HARMONIE + ECMWF über Open-Meteo; ein Ausfall soll die ICON-Daten nicht blockieren
+      - run: python fetch_openmeteo.py --out web/data
+        continue-on-error: true
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

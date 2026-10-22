@@ -98,7 +98,9 @@
 </div>
 <div id="list"></div>
 <script>
-const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)" };
+const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)", "dmi": "DMI HARMONIE (2 km)", "ecmwf": "ECMWF (9 km)" };
+// Diese Modelle kommen über Open-Meteo (CC BY 4.0, Quellenangabe nötig)
+const OPEN_METEO = new Set(["dmi", "ecmwf"]);
 let spots = [], spot, model = "icon-d2";
 
 // Windfinder-ähnliche Skala in Knoten (Farben aus Screenshot, Knotenwerte geschätzt), dazwischen fließend
@@ -150,7 +152,8 @@ function render(d) {
   const rows = d.rows.filter(r => local(r.t) >= now && (allHours || daylight(local(r.t))));
   const map = `https://www.google.com/maps/search/?api=1&query=${d.spot.lat},${d.spot.lon}`;
   document.getElementById("meta").innerHTML =
-    `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · <a class="map" href="${map}" target="_blank" rel="noopener">Auf Karte anzeigen</a>`;
+    `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · <a class="map" href="${map}" target="_blank" rel="noopener">Auf Karte anzeigen</a>` +
+    (OPEN_METEO.has(d.model) ? ` · Daten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>` : "");
   // Tageskopf
   const days = [];
   for (const r of rows) {
