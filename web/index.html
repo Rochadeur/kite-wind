@@ -80,6 +80,8 @@
   .hr .dir small { font-size:11px; }
   .hr .n { text-align:right; font-size:13px; }
   .hr .rain { color:#3c90f0; }
+  footer { color:var(--muted); padding:0 16px 24px; font-size:13px; }
+  footer a { color:var(--muted); }
 </style>
 </head>
 <body>
@@ -97,6 +99,7 @@
   <button class="nav next" id="next" title="Nächster Tag" aria-label="Nächster Tag">›</button>
 </div>
 <div id="list"></div>
+<footer>Alle Angaben ohne Gewähr · <a href="impressum.html">Impressum</a> · <a href="impressum.html#datenschutz">Datenschutz</a></footer>
 <script>
 const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)", "dmi": "DMI HARMONIE (2 km)", "ecmwf": "ECMWF (9 km)" };
 // Diese Modelle kommen über Open-Meteo (CC BY 4.0, Quellenangabe nötig)
@@ -153,7 +156,8 @@ function render(d) {
   const map = `https://www.google.com/maps/search/?api=1&query=${d.spot.lat},${d.spot.lon}`;
   document.getElementById("meta").innerHTML =
     `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · <a class="map" href="${map}" target="_blank" rel="noopener">Auf Karte anzeigen</a>` +
-    (OPEN_METEO.has(d.model) ? ` · Daten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>` : "");
+    (OPEN_METEO.has(d.model) ? ` · Daten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>`
+                             : ` · Daten: <a href="https://www.dwd.de/" target="_blank" rel="noopener">Deutscher Wetterdienst</a>`);
   // Tageskopf
   const days = [];
   for (const r of rows) {
