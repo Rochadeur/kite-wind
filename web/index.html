@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Windlotse · Kitewind Ostsee</title>
+<title>WindLotse</title>
 <meta name="apple-mobile-web-app-title" content="Windlotse">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -137,7 +137,6 @@ try { allHours = localStorage.getItem("allHours") === "1"; } catch {}
 const local = iso => new Date(iso.replace("Z", ":00Z"));
 
 async function load() {
-  document.title = `${spot.name} · Windlotse`;
   // no-cache: Browser (v. a. Safari) sollen nicht die alte Datei aus dem Zwischenspeicher nehmen
   const r = await fetch(`data/${spot.id}.${model}.json`, { cache: "no-cache" });
   if (!r.ok) { document.getElementById("meta").textContent = "Keine Daten für diesen Spot/Modell."; return; }
