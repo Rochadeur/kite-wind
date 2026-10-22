@@ -44,6 +44,36 @@
   .dir { display:flex; flex-direction:column; align-items:center; gap:1px; }
   .dir svg { width:20px; height:20px; fill:var(--fg); }
   .dir small { font-size:10px; color:var(--muted); line-height:1; }
+  /* Handy-Ansicht: Tage als aufklappbare Liste, Stunden untereinander */
+  #list { display:none; margin:0 12px 24px; }
+  @media (max-width: 640px) {
+    .box { display:none; }
+    #list { display:flex; flex-direction:column; gap:8px; }
+    header { padding:12px; gap:8px; }
+    .meta { padding:0 12px 8px; font-size:12px; }
+  }
+  .day-card { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .day-card summary { list-style:none; cursor:pointer; padding:10px 12px; display:grid; grid-template-columns:auto 1fr auto; gap:4px 10px; align-items:center; }
+  .day-card summary::-webkit-details-marker { display:none; }
+  .day-card summary::after { content:"›"; font-size:20px; color:var(--muted); transition:transform .2s; grid-column:3; grid-row:1 / span 2; }
+  .day-card[open] summary::after { transform:rotate(90deg); }
+  .day-card .dl { font-weight:600; }
+  .day-card .best { color:var(--muted); font-size:13px; text-align:right; }
+  .day-card .best b { color:var(--fg); }
+  .strip { grid-column:1 / span 2; display:flex; height:8px; border-radius:4px; overflow:hidden; }
+  .strip i { flex:1; }
+  .hr { display:grid; grid-template-columns:34px 1fr 52px 34px 34px; gap:6px; align-items:center; padding:3px 12px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .hr.head { font-size:11px; color:var(--muted); padding-block:4px; }
+  .hr .t { color:var(--muted); }
+  .hr .w { position:relative; height:24px; }
+  .hr .w .b { position:absolute; left:0; top:2px; bottom:2px; border-radius:3px; min-width:24px; display:flex; align-items:center; justify-content:flex-end; padding-right:5px; box-sizing:border-box; font-weight:600; font-size:13px; color:#111; }
+  .hr .w .b.dk { color:#fff; }
+  .hr .w .g { position:absolute; top:0; bottom:0; width:3px; border-radius:1px; }
+  .hr .w .gn { position:absolute; top:3px; font-size:11px; color:var(--muted); }
+  .hr .dir { flex-direction:row; gap:3px; }
+  .hr .dir small { font-size:11px; }
+  .hr .n { text-align:right; font-size:13px; }
+  .hr .rain { color:#3c90f0; }
 </style>
 </head>
 <body>
@@ -60,6 +90,7 @@
   <div class="wrap" id="wrap"><table id="tbl"></table></div>
   <button class="nav next" id="next" title="Nächster Tag" aria-label="Nächster Tag">›</button>
 </div>
+<div id="list"></div>
 <script>
 const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)" };
 let spots = [], spot, model = "icon-d2";
@@ -134,6 +165,7 @@ function render(d) {
     line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
     line("Wolken (%)", { v: r => r.cloud }) +
     line("Regen (mm)", { v: r => r.rain >= 0.1 ? r.rain : "" });
+  renderList(rows, days);
   edges();
 }
 
@@ -158,6 +190,41 @@ wrap.addEventListener("scroll", edges, { passive: true });
 window.addEventListener("resize", edges);
 document.getElementById("prev").onclick = () => jump(-1);
 document.getElementById("next").onclick = () => jump(1);
+
+// Handy-Ansicht: pro Tag eine Zeile mit stärkster Windphase, aufklappbar zu den Stunden
+function renderList(rows, days) {
+  const list = document.getElementById("list");
+  const open = new Set([...list.querySelectorAll("details[open]")].map(e => e.dataset.key));
+  list.innerHTML = days.map((d, di) => {
+    const hrs = rows.slice(d.first, d.first + d.n);
+    // stärkste Phase: längster zusammenhängender Block mit höchstens 2 kn unter dem Tagesmaximum
+    let m = 0; hrs.forEach((r, i) => { if (r.wind > hrs[m].wind) m = i; });
+    const lim = hrs[m].wind - 2;
+    let a = m, b = m;
+    for (let i = 0, j; i < hrs.length; i = j + 1) {
+      j = i; if (hrs[i].wind < lim) continue;
+      while (j < hrs.length - 1 && hrs[j + 1].wind >= lim) j++;
+      if (j - i > b - a) { a = i; b = j; }
+    }
+    const h = i => local(hrs[i].t).getHours();
+    const phase = a === b ? `${h(a)} Uhr` : `${h(a)}–${h(b)} Uhr`;
+    const isOpen = open.size ? open.has(d.key) : di === 0;
+    return `<details class="day-card" data-key="${d.key}"${isOpen ? " open" : ""}>
+      <summary><span class="dl">${d.label}</span>
+        <span class="best"><b>${Math.round(hrs[m].wind)} kn</b> (Böen ${Math.round(hrs[m].gust)}) · ${compass(hrs[m].dir)} · ${phase}</span>
+        <span class="strip">${hrs.map(r => `<i style="background:${color(r.wind)}"></i>`).join("")}</span></summary>
+      <div class="hr head"><span>Zeit</span><span>Wind | Böe (kn)</span><span>Richtung</span><span class="n">°C</span><span class="n">mm</span></div>
+      ${hrs.map(r => {
+        const c = color(r.wind), wp = Math.min(r.wind, 35) / 35 * 100, gp = Math.min(r.gust, 35) / 35 * 100;
+        return `<div class="hr"><span class="t">${local(r.t).getHours()}h</span>
+          <span class="w"><span class="b${isDark(c) ? " dk" : ""}" style="width:${wp}%;background:${c}">${Math.round(r.wind)}</span>
+            <span class="g" style="left:calc(${gp}% - 1px);background:${color(r.gust)}"></span>
+            <span class="gn" style="left:calc(${gp}% + 5px)">${Math.round(r.gust)}</span></span>
+          ${arrow(r.dir)}<span class="n">${Math.round(r.temp)}</span><span class="n rain">${r.rain >= 0.1 ? r.rain : ""}</span></div>`;
+      }).join("")}
+    </details>`;
+  }).join("");
+}
 
 async function init() {
   spots = await (await fetch("data/spots.json")).json();
