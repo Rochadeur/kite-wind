@@ -63,15 +63,15 @@
   .day-card .best b { color:var(--fg); }
   .strip { grid-column:1 / span 2; display:flex; height:8px; border-radius:4px; overflow:hidden; }
   .strip i { flex:1; }
-  .hr { display:grid; grid-template-columns:34px 1fr 52px 34px 34px; gap:6px; align-items:center; padding:3px 12px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .hr { display:grid; grid-template-columns:30px 28px 1fr 50px 28px 28px; gap:6px; align-items:center; padding:3px 12px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
   .hr.head { font-size:11px; color:var(--muted); padding-block:4px; }
   .hr .t { color:var(--muted); }
   .hr .w { position:relative; height:24px; }
   .hr .w .b { position:absolute; left:0; top:2px; bottom:2px; border-radius:3px; min-width:24px; display:flex; align-items:center; justify-content:flex-end; padding-right:5px; box-sizing:border-box; font-weight:600; font-size:13px; color:#111; }
   .hr .w .b.dk { color:#fff; }
   .hr .w .g { position:absolute; top:0; bottom:0; width:3px; border-radius:1px; }
-  .hr .w .gn { position:absolute; top:4px; font-size:11px; font-weight:600; padding:0 4px; border-radius:3px; line-height:16px; color:#111; }
-  .hr .w .gn.dk { color:#fff; }
+  .hr .gn { text-align:center; font-size:12px; font-weight:600; border-radius:3px; line-height:20px; color:#111; }
+  .hr .gn.dk { color:#fff; }
   .hr .dir { flex-direction:row; gap:3px; }
   .hr .dir small { font-size:11px; }
   .hr .n { text-align:right; font-size:13px; }
@@ -215,13 +215,13 @@ function renderList(rows, days) {
       <summary><span class="dl">${d.label}</span>
         <span class="best"><b>${Math.round(hrs[m].wind)} kn</b> (Böen ${Math.round(hrs[m].gust)}) · ${compass(hrs[m].dir)} · ${phase}</span>
         <span class="strip">${hrs.map(r => `<i style="background:${color(r.wind)}"></i>`).join("")}</span></summary>
-      <div class="hr head"><span>Zeit</span><span>Wind | Böe (kn)</span><span>Richtung</span><span class="n">°C</span><span class="n">mm</span></div>
+      <div class="hr head"><span>Zeit</span><span>Böe</span><span>Wind (kn), Strich = Böe</span><span>Richtung</span><span class="n">°C</span><span class="n">mm</span></div>
       ${hrs.map(r => {
         const c = color(r.wind), wp = Math.min(r.wind, 35) / 35 * 100, gp = Math.min(r.gust, 35) / 35 * 100;
         return `<div class="hr"><span class="t">${local(r.t).getHours()}h</span>
+          <span class="gn${isDark(color(r.gust)) ? " dk" : ""}" style="background:${color(r.gust)}">${Math.round(r.gust)}</span>
           <span class="w"><span class="b${isDark(c) ? " dk" : ""}" style="width:${wp}%;background:${c}">${Math.round(r.wind)}</span>
-            <span class="g" style="left:calc(${gp}% - 1px);background:${color(r.gust)}"></span>
-            <span class="gn${isDark(color(r.gust)) ? " dk" : ""}" style="left:calc(${gp}% + 5px);background:${color(r.gust)}">${Math.round(r.gust)}</span></span>
+            <span class="g" style="left:calc(${gp}% - 1px);background:${color(r.gust)}"></span></span>
           ${arrow(r.dir)}<span class="n">${Math.round(r.temp)}</span><span class="n rain">${r.rain >= 0.1 ? r.rain : ""}</span></div>`;
       }).join("")}
     </details>`;
