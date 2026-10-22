@@ -38,6 +38,7 @@
   td.bar .g { position:absolute; left:4px; right:4px; height:3px; }
   td.bar span { position:relative; font-weight:600; font-size:12px; display:block; padding-bottom:2px; color:#111; }
   td.bar span.dk { color:#fff; }
+  td.gu { font-weight:600; }
   /* Trennlinie vor jedem neuen Tag */
   th.ds, td.ds { border-left:2px solid var(--sep); }
   /* Windfinder-Stil: gefüllter Pfeil, zeigt wohin der Wind weht */
@@ -69,7 +70,8 @@
   .hr .w .b { position:absolute; left:0; top:2px; bottom:2px; border-radius:3px; min-width:24px; display:flex; align-items:center; justify-content:flex-end; padding-right:5px; box-sizing:border-box; font-weight:600; font-size:13px; color:#111; }
   .hr .w .b.dk { color:#fff; }
   .hr .w .g { position:absolute; top:0; bottom:0; width:3px; border-radius:1px; }
-  .hr .w .gn { position:absolute; top:3px; font-size:11px; color:var(--muted); }
+  .hr .w .gn { position:absolute; top:4px; font-size:11px; font-weight:600; padding:0 4px; border-radius:3px; line-height:16px; color:#111; }
+  .hr .w .gn.dk { color:#fff; }
   .hr .dir { flex-direction:row; gap:3px; }
   .hr .dir small { font-size:11px; }
   .hr .n { text-align:right; font-size:13px; }
@@ -160,7 +162,7 @@ function render(d) {
       return `<td class="bar${starts.has(i) ? " ds" : ""}"><div class="b" style="height:${h}px;background:${c}"></div>` +
         `<div class="g" style="bottom:${g}px;background:${color(r.gust)}"></div><span class="${isDark(c) ? "dk" : ""}">${Math.round(r.wind)}</span></td>`;
     }).join("")}</tr>` +
-    line("Böen (kn)", { v: r => Math.round(r.gust) }) +
+    line("Böen (kn)", { v: r => Math.round(r.gust), style: r => `background:${color(r.gust)};color:${isDark(color(r.gust)) ? "#fff" : "#111"}` }, "gu") +
     line("Richtung", { v: r => arrow(r.dir) }) +
     line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
     line("Wolken (%)", { v: r => r.cloud }) +
@@ -219,7 +221,7 @@ function renderList(rows, days) {
         return `<div class="hr"><span class="t">${local(r.t).getHours()}h</span>
           <span class="w"><span class="b${isDark(c) ? " dk" : ""}" style="width:${wp}%;background:${c}">${Math.round(r.wind)}</span>
             <span class="g" style="left:calc(${gp}% - 1px);background:${color(r.gust)}"></span>
-            <span class="gn" style="left:calc(${gp}% + 5px)">${Math.round(r.gust)}</span></span>
+            <span class="gn${isDark(color(r.gust)) ? " dk" : ""}" style="left:calc(${gp}% + 5px);background:${color(r.gust)}">${Math.round(r.gust)}</span></span>
           ${arrow(r.dir)}<span class="n">${Math.round(r.temp)}</span><span class="n rain">${r.rain >= 0.1 ? r.rain : ""}</span></div>`;
       }).join("")}
     </details>`;
