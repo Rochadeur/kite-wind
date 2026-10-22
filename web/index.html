@@ -59,10 +59,7 @@
     .meta { padding:0 12px 8px; font-size:12px; }
   }
   .day-card { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-  .day-card summary { list-style:none; cursor:pointer; padding:10px 12px; display:grid; grid-template-columns:auto 1fr auto; gap:4px 10px; align-items:center; }
-  .day-card summary::-webkit-details-marker { display:none; }
-  .day-card summary::after { content:"›"; font-size:20px; color:var(--muted); transition:transform .2s; grid-column:3; grid-row:1 / span 2; }
-  .day-card[open] summary::after { transform:rotate(90deg); }
+  .day-card .sum { padding:10px 12px; display:grid; grid-template-columns:auto 1fr; gap:4px 10px; align-items:center; }
   .day-card .dl { font-weight:600; }
   .day-card .best { color:var(--muted); font-size:13px; text-align:right; }
   .day-card .best b { color:var(--fg); }
@@ -198,11 +195,10 @@ window.addEventListener("resize", edges);
 document.getElementById("prev").onclick = () => jump(-1);
 document.getElementById("next").onclick = () => jump(1);
 
-// Handy-Ansicht: pro Tag eine Zeile mit stärkster Windphase, aufklappbar zu den Stunden
+// Handy-Ansicht: pro Tag ein Kopf mit stärkster Windphase, darunter alle Stunden
 function renderList(rows, days) {
   const list = document.getElementById("list");
-  const open = new Set([...list.querySelectorAll("details[open]")].map(e => e.dataset.key));
-  list.innerHTML = days.map((d, di) => {
+  list.innerHTML = days.map(d => {
     const hrs = rows.slice(d.first, d.first + d.n);
     // stärkste Phase: längster zusammenhängender Block mit höchstens 2 kn unter dem Tagesmaximum
     let m = 0; hrs.forEach((r, i) => { if (r.wind > hrs[m].wind) m = i; });
@@ -215,12 +211,11 @@ function renderList(rows, days) {
     }
     const h = i => local(hrs[i].t).getHours();
     const phase = a === b ? `${h(a)} Uhr` : `${h(a)}–${h(b)} Uhr`;
-    const isOpen = open.size ? open.has(d.key) : di === 0;
-    return `<details class="day-card" data-key="${d.key}"${isOpen ? " open" : ""}>
-      <summary><span class="dl">${d.label}</span>
+    return `<section class="day-card">
+      <div class="sum"><span class="dl">${d.label}</span>
         <span class="best"><b>${Math.round(hrs[m].wind)} kn</b> (Böen ${Math.round(hrs[m].gust)}) · ${compass(hrs[m].dir)} · ${phase}</span>
-        <span class="strip">${hrs.map(r => `<i style="background:${color(r.wind)}"></i>`).join("")}</span></summary>
-      <div class="hr head"><span>Zeit</span><span>Böe</span><span>Wind (kn), Strich = Böe</span><span>Richtung</span><span class="n">°C</span><span class="n">mm</span></div>
+        <span class="strip">${hrs.map(r => `<i style="background:${color(r.wind)}"></i>`).join("")}</span></div>
+      <div class="hr head"><span>Zeit</span><span>Böe</span><span>Wind (kn)</span><span>Richtung</span><span class="n">°C</span><span class="n">mm</span></div>
       ${hrs.map(r => {
         const c = color(r.wind), wp = Math.min(r.wind, 35) / 35 * 100, gp = Math.min(r.gust, 35) / 35 * 100;
         return `<div class="hr"><span class="t">${local(r.t).getHours()}h</span>
@@ -229,7 +224,7 @@ function renderList(rows, days) {
             <span class="g" style="left:calc(${gp}% - 1px);background:${color(r.gust)}"></span></span>
           ${arrow(r.dir)}<span class="n">${Math.round(r.temp)}</span><span class="n rain">${r.rain >= 0.1 ? r.rain : ""}</span></div>`;
       }).join("")}
-    </details>`;
+    </section>`;
   }).join("");
 }
 
