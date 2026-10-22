@@ -34,7 +34,7 @@
   <h1>WindLotse: Hilfe</h1>
   <a href="./">← Zur Vorhersage</a>
 </header>
-<p>WindLotse zeigt eine Windvorhersage für Kitespots an der deutschen Ostsee. Die Daten kommen direkt aus den Wettermodellen des Deutschen Wetterdienstes (DWD).</p>
+<p>WindLotse zeigt eine Windvorhersage für Kitespots an der deutschen Ostsee. Die Daten kommen aus den Wettermodellen des Deutschen Wetterdienstes (DWD), des Dänischen Wetterdienstes (DMI) und des Europäischen Zentrums für mittelfristige Wettervorhersage (ECMWF).</p>
 
 <h2>Spot auswählen</h2>
 <p>Oben links wählst du den Spot. Die Spots, die du zuletzt angesehen hast, stehen ganz oben in der Liste, der neueste zuerst. Darunter folgen alle anderen Spots alphabetisch. Die Seite merkt sich das in diesem Browser.</p>
@@ -44,8 +44,10 @@
 <table>
   <tr><th>ICON-D2 (2 km)</th><td>Feines Modell für Deutschland. Erfasst lokale Effekte wie Küsten und Bodden besser. Reicht etwa 2 Tage in die Zukunft, Werte für jede Stunde.</td></tr>
   <tr><th>ICON-EU (7 km)</th><td>Gröberes Modell für Europa. Reicht etwa 5 Tage in die Zukunft. Bis etwa Tag 3 stündlich, danach alle 3 Stunden.</td></tr>
+  <tr><th>DMI HARMONIE (2 km)</th><td>Feines Modell des Dänischen Wetterdienstes für Nord- und Ostsee. Gut als zweite Meinung neben ICON-D2. Reicht etwa 2,5 Tage in die Zukunft, Werte für jede Stunde.</td></tr>
+  <tr><th>ECMWF (9 km)</th><td>Globalmodell des Europäischen Zentrums, gilt als eines der besten Modelle für mehrere Tage im Voraus. Reicht 7 Tage in die Zukunft, die ersten Tage stündlich, danach in größeren Abständen.</td></tr>
 </table>
-<p>Faustregel: Für heute und morgen ist ICON-D2 meist genauer, für die Tage danach nimmst du ICON-EU.</p>
+<p>Faustregel: Für heute und morgen sind ICON-D2 und DMI HARMONIE meist genauer, für die Tage danach nimmst du ICON-EU oder ECMWF. Sagen zwei Modelle ähnliches voraus, ist die Vorhersage sicherer.</p>
 
 <h2>Die Tabelle</h2>
 <p>Jede Spalte ist eine Stunde. Die Tage sind durch eine graue Linie getrennt. Wenn die Tabelle nicht ganz auf den Bildschirm passt, zeigt ein Schatten am Rand, dass es weitergeht. Mit den runden Knöpfen ‹ › springst du einen Tag vor oder zurück. Du kannst auch seitlich wischen oder scrollen.</p>
@@ -89,14 +91,14 @@ Der Pfeil zeigt, <strong>wohin</strong> der Wind weht. Darunter steht, <strong>w
   <li><strong>Modelllauf:</strong> Der Startzeitpunkt der Berechnung beim DWD. Der DWD braucht danach noch etwa 2 Stunden (ICON-D2) bzw. 4 Stunden (ICON-EU), bis alle Daten fertig sind. Um 17 Uhr ist der neueste ICON-D2-Lauf deshalb meist der von 14 Uhr, der neueste ICON-EU-Lauf der von 8 oder 14 Uhr.</li>
   <li><strong>abgerufen:</strong> Wann die Seite die Daten zuletzt geholt hat.</li>
 </ul>
-<p>ICON-D2 rechnet alle 3 Stunden neu, ICON-EU alle 6 Stunden.</p>
+<p>ICON-D2 und DMI HARMONIE rechnen alle 3 Stunden neu, ICON-EU und ECMWF alle 6 Stunden. DMI HARMONIE und ECMWF holt die Seite über den Dienst <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>.</p>
 
 <h2>Gut zu wissen</h2>
 <ul>
   <li>Das ist eine reine Modellvorhersage ohne Messwerte und ohne Korrektur. Vor Ort kann es anders aussehen, vor allem bei Gewitter, Seebrise oder ablandigem Wind.</li>
   <li>Prüfe vor dem Kiten immer die aktuelle Lage und die Regeln am Spot.</li>
 </ul>
-<p class="muted">Datenquelle: Deutscher Wetterdienst, Modelle ICON-D2 und ICON-EU.</p>
+<p class="muted">Datenquellen: Deutscher Wetterdienst (ICON-D2, ICON-EU); DMI HARMONIE und ECMWF IFS über <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>).</p>
 </main>
 </body>
 </html>
