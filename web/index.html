@@ -59,6 +59,8 @@
     #list { display:flex; flex-direction:column; gap:8px; }
     header { padding:12px; gap:8px; }
     .meta { padding:0 12px 8px; font-size:12px; }
+    body #cmp { width:100%; flex-wrap:nowrap; }
+    body #cmp select { flex:1; min-width:0; max-width:none; padding:6px 4px; }
   }
   .day-card { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
   .day-card .sum { padding:10px 12px; display:grid; grid-template-columns:auto 1fr; gap:4px 10px; align-items:center; }
@@ -80,6 +82,28 @@
   .hr .dir small { font-size:11px; }
   .hr .n { text-align:right; font-size:13px; }
   .hr .rain { color:#3c90f0; }
+  /* Vergleichsmodus: drei Spots, ein Modell */
+  #cmp { display:none; gap:6px; flex-wrap:wrap; }
+  body.vgl #cmp { display:flex; }
+  body.vgl #spot { display:none; }
+  #cmp select { max-width:170px; }
+  tr.sp td { border-top:2px solid var(--sep); }
+  td.spn { color:var(--fg) !important; font-weight:600 !important; }
+  td.spn button { all:unset; cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; }
+  td.spn small { display:block; font-weight:400; color:var(--muted); font-size:11px; }
+  body.vgl td.bar { height:62px; }
+  .cg { display:grid; grid-template-columns:30px repeat(3, minmax(0, 1fr)); gap:6px; align-items:center; padding:3px 12px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .cg.head { font-size:12px; font-weight:600; padding-block:6px; }
+  .cg.head span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+  .cg.max { font-size:12px; color:var(--muted); border-top:0; padding-top:0; }
+  .cg.max span { text-align:center; }
+  .cg .t { color:var(--muted); }
+  .cg .c { display:flex; align-items:center; justify-content:center; gap:4px; border-radius:4px; height:28px; color:#111; }
+  .cg .c.dk { color:#fff; }
+  .cg .c b { font-size:14px; }
+  .cg .c em { font-style:normal; font-size:11px; opacity:.85; }
+  .cg .c svg { width:14px; height:14px; fill:currentColor; }
+  .cg .c.nd { background:var(--line); color:var(--muted); }
   footer { color:var(--muted); padding:0 16px 24px; font-size:13px; }
   footer a { color:var(--muted); }
 </style>
@@ -88,8 +112,10 @@
 <header>
   <h1>WindLotse</h1>
   <select id="spot"></select>
+  <span id="cmp"><select data-i="0" aria-label="Spot 1"></select><select data-i="1" aria-label="Spot 2"></select><select data-i="2" aria-label="Spot 3"></select></span>
   <span id="models"></span>
   <label class="opt"><input type="checkbox" id="allHours"> Alle Stunden</label>
+  <label class="opt"><input type="checkbox" id="compare"> Vergleich</label>
   <a class="help" href="hilfe.html">Hilfe</a>
 </header>
 <div class="meta" id="meta"></div>
@@ -142,6 +168,7 @@ try { allHours = localStorage.getItem("allHours") === "1"; } catch {}
 const local = iso => new Date(iso.replace("Z", ":00Z"));
 
 async function load() {
+  if (compare) return loadCompare();
   // no-cache: Browser (v. a. Safari) sollen nicht die alte Datei aus dem Zwischenspeicher nehmen
   const r = await fetch(`data/${spot.id}.${model}.json`, { cache: "no-cache" });
   if (!r.ok) { document.getElementById("meta").textContent = "Keine Daten für diesen Spot/Modell."; return; }
@@ -239,6 +266,78 @@ function renderList(rows, days) {
   }).join("");
 }
 
+// Vergleichsmodus: drei Spots mit dem gewählten Modell in einer gemeinsamen Stundentabelle
+let compare = false, cmpIds = [];
+try { compare = localStorage.getItem("compareOn") === "1"; cmpIds = JSON.parse(localStorage.getItem("compare") || "[]"); } catch {}
+
+async function loadCompare() {
+  const ds = await Promise.all(cmpIds.map(async id => {
+    const r = await fetch(`data/${id}.${model}.json`, { cache: "no-cache" }).catch(() => null);
+    return r && r.ok ? r.json() : { spot: spots.find(s => s.id === id), rows: [] };
+  }));
+  renderCompare(ds);
+}
+
+function renderCompare(ds) {
+  const now = Date.now() - 3600e3, have = ds.filter(d => d.rows.length);
+  // Tageslicht: Stunde zählt, wenn es an mindestens einem der Spots hell ist
+  const daylight = t => ds.some(d => { const [rise, set] = sunTimes(t, d.spot.lat, d.spot.lon); return t > rise - 3600e3 && t < set + 3600e3; });
+  const times = [...new Set(have.flatMap(d => d.rows.map(r => r.t)))].sort()
+    .filter(t => local(t) >= now && (allHours || daylight(local(t))));
+  const byT = ds.map(d => new Map(d.rows.map(r => [r.t, r])));
+  const meta = document.getElementById("meta");
+  if (!have.length) { meta.textContent = "Keine Daten für diese Spots/dieses Modell."; document.getElementById("tbl").innerHTML = ""; document.getElementById("list").innerHTML = ""; return; }
+  const d0 = have[0];
+  const missing = ds.filter(d => !d.rows.length).map(d => d.spot.name);
+  meta.innerHTML = `Vergleich · ${MODELS[model]} · Modelllauf ${local(d0.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}` +
+    `${d0.fetched ? `, abgerufen ${local(d0.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""}` +
+    (missing.length ? ` · keine Daten: ${missing.join(", ")}` : "") +
+    (OPEN_METEO.has(model) ? ` · Daten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>`
+                           : ` · Daten: <a href="https://www.dwd.de/" target="_blank" rel="noopener">Deutscher Wetterdienst</a>`);
+  const days = [];
+  times.forEach((iso, i) => {
+    const t = local(iso), key = t.toDateString();
+    if (!days.length || days.at(-1).key !== key) days.push({ key, label: `${DAYS[t.getDay()]} ${t.getDate()}.${t.getMonth()+1}.`, n: 0, first: i });
+    days.at(-1).n++;
+  });
+  const starts = new Set(days.slice(1).map(d => d.first));
+  const ds_ = i => starts.has(i) ? " ds" : "";
+  const name = d => `<button data-go="${d.spot.id}" title="${d.spot.name} einzeln anzeigen">${d.spot.name}</button>`;
+  let html = `<tr class="day"><th></th>${days.map((d, i) => `<th colspan="${d.n}"${i ? ' class="ds"' : ""}>${d.label}</th>`).join("")}</tr>` +
+    `<tr><td>Uhrzeit</td>${times.map((t, i) => `<td class="${ds_(i)}">${local(t).getHours()}h</td>`).join("")}</tr>`;
+  ds.forEach((d, k) => {
+    const r = t => byT[k].get(t);
+    html += `<tr class="sp"><td class="spn">${name(d)}<small>Wind (kn)</small></td>${times.map((t, i) => {
+      const x = r(t); if (!x) return `<td class="bar${ds_(i)}"></td>`;
+      const h = Math.max(Math.min(x.wind, 35) * 1.6, 16), g = Math.min(x.gust, 35) * 1.6, c = color(x.wind);
+      return `<td class="bar${ds_(i)}"><div class="b" style="height:${h}px;background:${c}"></div>` +
+        `<div class="g" style="bottom:${g}px;background:${color(x.gust)}"></div><span class="${isDark(c) ? "dk" : ""}">${Math.round(x.wind)}</span></td>`;
+    }).join("")}</tr>` +
+    `<tr><td>Böen (kn)</td>${times.map((t, i) => { const x = r(t); if (!x) return `<td class="${ds_(i)}"></td>`;
+      const c = color(x.gust); return `<td class="gu${ds_(i)}" style="background:${c};color:${isDark(c) ? "#fff" : "#111"}">${Math.round(x.gust)}</td>`; }).join("")}</tr>` +
+    `<tr><td>Richtung</td>${times.map((t, i) => { const x = r(t); return `<td class="${ds_(i)}">${x ? arrow(x.dir) : ""}</td>`; }).join("")}</tr>`;
+  });
+  document.getElementById("tbl").innerHTML = html;
+  // Handy hochkant: pro Tag eine Karte, je Stunde eine Zeile mit drei Spot-Spalten
+  const short = s => s.replace(/\s*\(.*\)/, "");
+  const arr = deg => `<svg viewBox="0 0 24 24" style="transform:rotate(${deg + 180}deg)"><path d="M12 2 L17 21 L12 17 L7 21 Z"/></svg>`;
+  document.getElementById("list").innerHTML = days.map(day => {
+    const ts = times.slice(day.first, day.first + day.n);
+    const max = k => { const xs = ts.map(t => byT[k].get(t)).filter(Boolean); return xs.length ? Math.round(Math.max(...xs.map(x => x.wind))) + " kn" : "–"; };
+    return `<section class="day-card">
+      <div class="sum"><span class="dl">${day.label}</span><span class="best">max. Wind je Spot</span></div>
+      <div class="cg head"><span></span>${ds.map(d => `<span data-go="${d.spot.id}" title="${d.spot.name}">${short(d.spot.name)}</span>`).join("")}</div>
+      <div class="cg max"><span></span>${ds.map((d, k) => `<span>${max(k)}</span>`).join("")}</div>
+      ${ts.map(t => `<div class="cg"><span class="t">${local(t).getHours()}h</span>${ds.map((d, k) => {
+        const x = byT[k].get(t); if (!x) return `<span class="c nd">–</span>`;
+        const c = color(x.wind);
+        return `<span class="c${isDark(c) ? " dk" : ""}" style="background:${c}" title="${compass(x.dir)}"><b>${Math.round(x.wind)}</b><em>${Math.round(x.gust)}</em>${arr(x.dir)}</span>`;
+      }).join("")}</div>`).join("")}
+    </section>`;
+  }).join("");
+  edges();
+}
+
 async function init() {
   spots = await (await fetch("data/spots.json", { cache: "no-cache" })).json();
   const sel = document.getElementById("spot");
@@ -266,7 +365,26 @@ async function init() {
   const ah = document.getElementById("allHours");
   ah.checked = allHours;
   ah.onchange = () => { allHours = ah.checked; try { localStorage.setItem("allHours", allHours ? "1" : "0"); } catch {} load(); };
-  fillSpots(); spot = spots.find(s => s.id === sel.value); mark(); load();
+  // Vergleich: drei Auswahlfelder, anfangs mit den zuletzt genutzten Spots vorbelegt
+  const cmpSel = [...document.querySelectorAll("#cmp select")];
+  const fillCmp = () => {
+    const ids = cmpIds.filter(id => spots.some(s => s.id === id));
+    for (const id of [...recent, ...spots.map(s => s.id).sort()]) if (ids.length < 3 && !ids.includes(id)) ids.push(id);
+    cmpIds = ids.slice(0, 3);
+    const rest = spots.filter(s => !recent.includes(s.id)).sort((a, b) => a.name.localeCompare(b.name, "de"));
+    const opt = s => `<option value="${s.id}">${s.name}</option>`;
+    const html = recent.map(id => opt(spots.find(s => s.id === id))).join("") +
+      (recent.length ? `<option disabled>──────────</option>` : "") + rest.map(opt).join("");
+    cmpSel.forEach((s, i) => { s.innerHTML = html; s.value = cmpIds[i]; });
+  };
+  const saveCmp = () => { try { localStorage.setItem("compare", JSON.stringify(cmpIds)); localStorage.setItem("compareOn", compare ? "1" : "0"); } catch {} };
+  cmpSel.forEach((s, i) => s.onchange = () => { cmpIds[i] = s.value; saveCmp(); load(); });
+  const cb = document.getElementById("compare");
+  const setCompare = on => { compare = on; cb.checked = on; document.body.classList.toggle("vgl", on); if (on) fillCmp(); saveCmp(); };
+  cb.onchange = () => { setCompare(cb.checked); load(); };
+  // Klick auf einen Spotnamen im Vergleich: diesen Spot einzeln anzeigen
+  document.addEventListener("click", e => { const go = e.target.closest("[data-go]"); if (go) { setCompare(false); use(go.dataset.go); load(); } });
+  fillSpots(); spot = spots.find(s => s.id === sel.value); mark(); setCompare(compare); load();
 }
 init();
 </script>
