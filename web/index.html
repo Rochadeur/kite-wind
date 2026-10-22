@@ -15,7 +15,19 @@
   .opt { display:flex; align-items:center; gap:6px; cursor:pointer; }
   .help { margin-left:auto; color:var(--fg); }
   .meta { color:var(--muted); padding:0 16px 8px; }
-  .wrap { overflow-x:auto; margin:0 16px 24px; background:var(--card); border:1px solid var(--line); border-radius:8px; }
+  .box { position:relative; margin:0 16px 24px; }
+  .wrap { overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:8px; scroll-behavior:smooth; }
+  /* Schatten am Rand und Pfeil-Knöpfe zeigen, dass die Tabelle seitlich weitergeht */
+  .box::before, .box::after { content:""; position:absolute; top:1px; bottom:1px; width:28px; pointer-events:none; opacity:0; transition:opacity .2s; z-index:2; }
+  .box::before { left:var(--stick, 117px); background:linear-gradient(to right, rgba(0,0,0,.22), transparent); }
+  .box::after { right:1px; border-radius:0 8px 8px 0; background:linear-gradient(to left, rgba(0,0,0,.22), transparent); }
+  .box.more-l::before, .box.more-r::after { opacity:1; }
+  .nav { position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:36px; height:36px; padding:0; border-radius:50%;
+         font-size:20px; line-height:1; box-shadow:0 1px 4px rgba(0,0,0,.3); display:none; cursor:pointer; }
+  .nav.prev { left:calc(var(--stick, 117px) + 6px); }
+  .nav.next { right:6px; }
+  .box.more-l .nav.prev, .box.more-r .nav.next { display:block; }
+  @media (prefers-reduced-motion: reduce) { .wrap { scroll-behavior:auto; } }
   table { border-collapse:collapse; font-variant-numeric:tabular-nums; }
   th, td { padding:4px 0; min-width:34px; text-align:center; border-left:1px solid var(--line); }
   th:first-child, td:first-child { position:sticky; left:0; background:var(--card); text-align:left; padding:4px 10px; min-width:96px; color:var(--muted); font-weight:500; border-left:0; z-index:1; }
@@ -43,7 +55,11 @@
   <a class="help" href="hilfe.html">Hilfe</a>
 </header>
 <div class="meta" id="meta"></div>
-<div class="wrap"><table id="tbl"></table></div>
+<div class="box" id="box">
+  <button class="nav prev" id="prev" title="Vorheriger Tag" aria-label="Vorheriger Tag">‹</button>
+  <div class="wrap" id="wrap"><table id="tbl"></table></div>
+  <button class="nav next" id="next" title="Nächster Tag" aria-label="Nächster Tag">›</button>
+</div>
 <script>
 const MODELS = { "icon-d2": "ICON-D2 (2 km)", "icon-eu": "ICON-EU (7 km)" };
 let spots = [], spot, model = "icon-d2";
@@ -118,7 +134,30 @@ function render(d) {
     line("Temp. (°C)", { v: r => Math.round(r.temp) }) +
     line("Wolken (%)", { v: r => r.cloud }) +
     line("Regen (mm)", { v: r => r.rain >= 0.1 ? r.rain : "" });
+  edges();
 }
+
+// Zeigt Schatten/Knöpfe nur, wenn es in die Richtung noch etwas zu sehen gibt
+const wrap = document.getElementById("wrap"), box = document.getElementById("box");
+function edges() {
+  const first = wrap.querySelector("td");
+  if (first) box.style.setProperty("--stick", first.offsetWidth + 1 + "px");
+  box.classList.toggle("more-l", wrap.scrollLeft > 2);
+  box.classList.toggle("more-r", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 2);
+}
+// Springt zum Anfang des nächsten/vorherigen Tages
+function jump(dir) {
+  const stick = wrap.querySelector("td").offsetWidth;
+  const starts = [...wrap.querySelectorAll("tr.day th")].slice(1).map(th => th.offsetLeft - stick);
+  starts.unshift(0);
+  const x = wrap.scrollLeft;
+  const target = dir > 0 ? starts.find(s => s > x + 2) : starts.filter(s => s < x - 2).at(-1);
+  wrap.scrollLeft = target ?? (dir > 0 ? wrap.scrollWidth : 0);
+}
+wrap.addEventListener("scroll", edges, { passive: true });
+window.addEventListener("resize", edges);
+document.getElementById("prev").onclick = () => jump(-1);
+document.getElementById("next").onclick = () => jump(1);
 
 async function init() {
   spots = await (await fetch("data/spots.json")).json();
