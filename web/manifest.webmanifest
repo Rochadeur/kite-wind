@@ -1,6 +1,6 @@
 {
-  "name": "Windlotse · Kitewind Ostsee",
-  "short_name": "Windlotse",
+  "name": "WindLotse · Kitewind Ostsee",
+  "short_name": "WindLotse",
   "description": "Windvorhersage für Kitespots an der Ostsee (DWD ICON-D2/ICON-EU)",
   "start_url": "./",
   "display": "standalone",
