@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kite-Wind</title>
+<title>Windlotse · Kitewind Ostsee</title>
+<meta name="apple-mobile-web-app-title" content="Windlotse">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -82,7 +83,7 @@
 </head>
 <body>
 <header>
-  <h1>Kite-Wind</h1>
+  <h1>Windlotse</h1>
   <select id="spot"></select>
   <span id="models"></span>
   <label class="opt"><input type="checkbox" id="allHours"> Alle Stunden</label>
@@ -135,6 +136,7 @@ try { allHours = localStorage.getItem("allHours") === "1"; } catch {}
 const local = iso => new Date(iso.replace("Z", ":00Z"));
 
 async function load() {
+  document.title = `${spot.name} · Windlotse`;
   const r = await fetch(`data/${spot.id}.${model}.json`);
   if (!r.ok) { document.getElementById("meta").textContent = "Keine Daten für diesen Spot/Modell."; return; }
   render(await r.json());
