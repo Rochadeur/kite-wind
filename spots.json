@@ -14,7 +14,7 @@
   {"id": "grossenbrode-ost", "name": "Großenbrode Ost", "region": "Heiligenhafen & Großenbrode", "lat": 54.36, "lon": 11.08, "windguru": 48155},
   {"id": "grossenbrode-west", "name": "Großenbrode West", "region": "Heiligenhafen & Großenbrode", "lat": 54.39, "lon": 11.09, "windguru": 48176},
   {"id": "pelzerhaken", "name": "Pelzerhaken", "region": "Lübecker Bucht", "lat": 54.09, "lon": 10.86, "windguru": 48149},
-  {"id": "schwansee", "name": "Schwansee", "region": "Wismarer Bucht & Salzhaff", "lat": 53.99, "lon": 11.0, "windguru": 500797},
+  {"id": "wulfener-hals", "name": "Wulfener Hals", "region": "Fehmarn", "lat": 54.41, "lon": 11.18},
   {"id": "wohlenberger-wiek", "name": "Wohlenberger Wiek", "region": "Wismarer Bucht & Salzhaff", "lat": 53.94, "lon": 11.25, "windguru": 48143},
   {"id": "wieschendorf", "name": "Wieschendorf", "region": "Wismarer Bucht & Salzhaff", "lat": 53.95, "lon": 11.34, "windguru": 48142},
   {"id": "wangern", "name": "Wangern", "region": "Wismarer Bucht & Salzhaff", "lat": 53.98, "lon": 11.38, "windguru": 48141},
