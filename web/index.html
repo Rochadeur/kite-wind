@@ -235,10 +235,23 @@ async function init() {
   spots = await (await fetch("data/spots.json", { cache: "no-cache" })).json();
   const sel = document.getElementById("spot");
   // Spots nach Region gruppiert, Reihenfolge wie in spots.json
-  const regions = [...new Set(spots.map(s => s.region))];
-  sel.innerHTML = regions.map(g => `<optgroup label="${g}">${spots.filter(s => s.region === g)
-    .map(s => `<option value="${s.id}">${s.name}</option>`).join("")}</optgroup>`).join("");
-  sel.onchange = () => { spot = spots.find(s => s.id === sel.value); try { localStorage.setItem("spot", spot.id); } catch {} load(); };
+  // Spot-Liste: zuletzt genutzte Spots oben (neuester zuerst), danach alle übrigen alphabetisch
+  let recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recent") || "[]"); } catch {}
+  try { const old = localStorage.getItem("spot"); if (old && !recent.length) recent = [old]; } catch {}
+  recent = recent.filter(id => spots.some(s => s.id === id));
+  const fillSpots = () => {
+    const rest = spots.filter(s => !recent.includes(s.id)).sort((a, b) => a.name.localeCompare(b.name, "de"));
+    const opt = s => `<option value="${s.id}">${s.name} (${s.region})</option>`;
+    sel.innerHTML = recent.map(id => opt(spots.find(s => s.id === id))).join("") +
+      (recent.length ? `<option disabled>──────────</option>` : "") + rest.map(opt).join("");
+  };
+  const use = id => {
+    recent = [id, ...recent.filter(r => r !== id)];
+    try { localStorage.setItem("recent", JSON.stringify(recent)); } catch {}
+    spot = spots.find(s => s.id === id); fillSpots(); sel.value = id;
+  };
+  sel.onchange = () => { use(sel.value); load(); };
   const m = document.getElementById("models");
   m.innerHTML = Object.entries(MODELS).map(([k, v]) => `<button data-m="${k}">${v}</button>`).join(" ");
   m.onclick = e => { if (!e.target.dataset.m) return; model = e.target.dataset.m; mark(); load(); };
@@ -246,8 +259,7 @@ async function init() {
   const ah = document.getElementById("allHours");
   ah.checked = allHours;
   ah.onchange = () => { allHours = ah.checked; try { localStorage.setItem("allHours", allHours ? "1" : "0"); } catch {} load(); };
-  let saved; try { saved = localStorage.getItem("spot"); } catch {}
-  spot = spots.find(s => s.id === saved) || spots[0]; sel.value = spot.id; mark(); load();
+  fillSpots(); spot = spots.find(s => s.id === sel.value); mark(); load();
 }
 init();
 </script>
