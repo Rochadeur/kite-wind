@@ -44,9 +44,9 @@
   .dir { display:flex; flex-direction:column; align-items:center; gap:1px; }
   .dir svg { width:20px; height:20px; fill:var(--fg); }
   .dir small { font-size:10px; color:var(--muted); line-height:1; }
-  /* Handy-Ansicht: Tage als aufklappbare Liste, Stunden untereinander */
+  /* Handy hochkant: Tage als aufklappbare Liste, Stunden untereinander (quer: Tabelle wie am Computer) */
   #list { display:none; margin:0 12px 24px; }
-  @media (max-width: 640px) {
+  @media (max-width: 640px) and (orientation: portrait) {
     .box { display:none; }
     #list { display:flex; flex-direction:column; gap:8px; }
     header { padding:12px; gap:8px; }
