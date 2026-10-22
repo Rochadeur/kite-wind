@@ -149,7 +149,7 @@ function render(d) {
   const daylight = t => { const [rise, set] = sunTimes(t, d.spot.lat, d.spot.lon); return t > rise - 3600e3 && t < set + 3600e3; };
   const rows = d.rows.filter(r => local(r.t) >= now && (allHours || daylight(local(r.t))));
   document.getElementById("meta").textContent =
-    `${d.spot.region} · ${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
+    `${d.spot.name} · ${MODELS[d.model]} · Modelllauf ${local(d.run).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}${d.fetched ? `, abgerufen ${local(d.fetched).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}` : ""} · Gitterpunkt nahe ${d.spot.lat.toFixed(2)}°N ${d.spot.lon.toFixed(2)}°E`;
   // Tageskopf
   const days = [];
   for (const r of rows) {
@@ -234,7 +234,6 @@ function renderList(rows, days) {
 async function init() {
   spots = await (await fetch("data/spots.json", { cache: "no-cache" })).json();
   const sel = document.getElementById("spot");
-  // Spots nach Region gruppiert, Reihenfolge wie in spots.json
   // Spot-Liste: zuletzt genutzte Spots oben (neuester zuerst), danach alle übrigen alphabetisch
   let recent = [];
   try { recent = JSON.parse(localStorage.getItem("recent") || "[]"); } catch {}
@@ -242,7 +241,7 @@ async function init() {
   recent = recent.filter(id => spots.some(s => s.id === id));
   const fillSpots = () => {
     const rest = spots.filter(s => !recent.includes(s.id)).sort((a, b) => a.name.localeCompare(b.name, "de"));
-    const opt = s => `<option value="${s.id}">${s.name} (${s.region})</option>`;
+    const opt = s => `<option value="${s.id}">${s.name}</option>`;
     sel.innerHTML = recent.map(id => opt(spots.find(s => s.id === id))).join("") +
       (recent.length ? `<option disabled>──────────</option>` : "") + rest.map(opt).join("");
   };
